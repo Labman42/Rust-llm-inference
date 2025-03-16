@@ -124,7 +124,6 @@ impl Llama<f32> {
         let mut logits = Tensor::<f32>::default(&vec![1, self.vocab]);
         let mut hidden_states = hidden_states.slice((seq_len - 1) * self.d, &vec![1, self.d]);
         let residual = residual.slice((seq_len - 1) * self.d, &vec![self.d]);
-        // println!("self.d: {}", self.d);
         OP::rms_norm(
             &mut hidden_states,
             &residual,
@@ -234,7 +233,6 @@ fn mlp(
     rms_w: &Tensor<f32>,
     eps: f32,
 ) {
-    // todo!("Implement mlp");
     OP::rms_norm(hidden_states, residual, rms_w, eps);
 
     OP::matmul_transb(gate, 0.0, hidden_states, w_gate, 1.0);

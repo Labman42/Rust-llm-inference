@@ -72,11 +72,7 @@ pub fn masked_softmax(y: &mut Tensor<f32>) {
 
 pub fn rms_norm(y: &mut Tensor<f32>, x: &Tensor<f32>, w: &Tensor<f32>, epsilon: f32) {
     let len = w.size();
-    let ndim = x.shape().len();
-    // println!("w: {}, len: {}", len, y.shape()[ndim - 1]);
-    // assert!(len == x.shape()[ndim - 1]);
-    // assert!(len == y.shape()[ndim - 1]);
-    // assert!(y.shape() == x.shape());
+
 
     let _y = unsafe { y.data_mut() };
     let _x = x.data();
@@ -84,11 +80,13 @@ pub fn rms_norm(y: &mut Tensor<f32>, x: &Tensor<f32>, w: &Tensor<f32>, epsilon: 
 
     for i in 0..x.size() / len {
         let mut sum = 0.0;
+        // Reduce sum
         for j in 0..len {
             let idx = i * len + j;
             sum += _x[idx] * _x[idx];
         }
         let norm = (sum / (len as f32) + epsilon).sqrt();
+        // per token-wise scaling
         for j in 0..len {
             let idx = i * len + j;
             _y[idx] = _x[idx] * _w[j] / norm;
@@ -98,7 +96,7 @@ pub fn rms_norm(y: &mut Tensor<f32>, x: &Tensor<f32>, w: &Tensor<f32>, epsilon: 
 }
 
 // y = silu(x) * y
-// hint: this is an element-wise operation
+// element-wise operation
 pub fn swiglu(y: &mut Tensor<f32>, x: &Tensor<f32>) {
     let len = y.size();
     assert!(len == x.size());
@@ -113,7 +111,7 @@ pub fn swiglu(y: &mut Tensor<f32>, x: &Tensor<f32>) {
 }
 
 // C = beta * C + alpha * A @ B^T
-// hint: You don't need to do an explicit transpose of B
+// Don't need to do an explicit transpose of B
 pub fn matmul_transb(c: &mut Tensor<f32>, beta: f32, a: &Tensor<f32>, b: &Tensor<f32>, alpha: f32) {
     let a_shape = a.shape();
     let b_shape = b.shape();
@@ -223,7 +221,6 @@ pub fn random_sample(x: &Tensor<f32>, top_p: f32, top_k: u32, temperature: f32) 
     logits.iter().find(|p| p.val >= plimit).unwrap().tok
 }
 
-// Your implementation should at least pass the following tests:
 #[test]
 fn test_silu() {
     let mut y = Tensor::<f32>::new(vec![2., 3., 4.], &vec![1, 3]);
